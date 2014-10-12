@@ -1,0 +1,19 @@
+\section{Similar code detection}
+
+In this work we use pure syntactic methods to determine 'equivalent' or 'similar'
+code. Simplest possible way to do this would be line-by-line comparison of
+source lines. However code can differ by an indentation, comments, variable names
+and etc. Closer to full semantics but sill practical possibility would be to
+compare program representation in which control and data flows are explicit.
+
+At first step of similar code detection we parse code into Abstract Syntax
+trees. Rather than comparing trees for exact equality, we compare by similarity
+scoring function\cite{Baxter&al1998}:
+
+
+\begin{math}
+Similarity =  \frac{ 2 \cdot S}{2 \cdot S + L + R}
+\end{math}
+
+S is a number of shared nodes. L is a number of different nodes in left subtree,
+and R - in right subtree.

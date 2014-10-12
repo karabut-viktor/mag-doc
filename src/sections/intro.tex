@@ -1,0 +1,29 @@
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+Currently there is a lot of code written in Java. Often developers waste time on
+writing code which is already exists in another project or library. Our goal is
+develop a tool, which would hint developers, where is already exist a similliar
+code and how to improve it's quality. Often code reuse is limited by legal
+issues, such as patents, copyrights. Hovewer there is a wide variety of an open source
+projects, from where code can be used as an inspiration or even be directly
+copied.
+
+In first chapter we consider questions about code similarity. To detect similar
+code fragmenst we will parse code into Abstract Syntax Trees (AST). After that
+we can compute edit distance between AST's. Edit distance shows how many nodes
+from original AST need to remove or add to get target AST. This is analogue of
+Levenshteins distance for trees.
+
+In second chapter we will consider search engine for code fragments. AST
+each-to-each comparison complexity is $O(n^2 \cdot m^2)$ where $n$ is number of
+trees and $m$ is size of each treee. For large code fragment database speed of
+quadratic alghorithms is unacceptable. To solve this issue we use a
+hashing mechanism. Unfortunately hashing of raw ASTs cannot help in finding similar code
+fragment. For this we introduce Approximate Code Trees (ACT) fingerprints.
+ACT is generalized version of AST, where some nodes replaced by patterns. Every ACT
+represent wide class of ASTs. Now we can in constant time find matching ACT and
+get some relatively small set of matching AST from where we can find more
+similar code fragments using a slow quadratic alghorithms.
+
+Finally in third chapter we describe experiments with finding code fragments in
+open source projects fetched from Maven Central database.
