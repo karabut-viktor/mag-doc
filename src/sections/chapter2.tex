@@ -44,4 +44,23 @@ frameworks. Most of Java projects use SL4J, java.logging, commons-logging etc.
 
 \subsection{Database and Maven}
 
-About H2DB and maven.
+Apache Maven is a build automation tool used primarily for Java projects. Maven
+addresses two aspects of building software: First, it describes how software is built, 
+and second, it describes its dependencies. Contrary to preceding tools like Apache
+Ant it uses conventions for the build procedure, and only exceptions need to be
+written down. An XML file describes the software project being built, its
+dependencies on other external modules and components, the build order, 
+directories, and required plug-ins. Maven dynamically downloads Java libraries
+and Maven plug-ins from one or more repositories such as the Maven  Central 
+Repository, and stores them in a local cache.
+
+Build artifacts in maven repository is versioned and often provided with source
+code. It allows as to trace evolution of project. In this paper we user
+artifacts from Maven Central Repository. Maven Central Repository is
+the default repository for Apache Maven and it serves only Open Source projects. 
+According Maven Central Repository statistics in November 2014 there were over 800 
+thousands artifacts.
+
+For accessing Maven repository there is well documented Maven Plugin API for
+fetching and managing artifacts.
+
