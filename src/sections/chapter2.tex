@@ -2,13 +2,12 @@
 
 \subsection{Hashing of code fragments}
 
-The one to one AST comparison method is slow and isn't applicable in practice.
-We need hashing mechanism for AST where similar AST have same hash codes. For this we
-introduce our Approximate Code Tree (ACT) structure. ACT is a method fingerprint,
-which we use for our hashing function. We produce ACT from single method AST by
-throwing away irrelevant information, generalizing types, normalizing expressions and replacing some construction with
-wildcards. We work at method level, so as a disvantage we cannot handle
-refactoring such as a method inlining or method extraction.
+One to one comparisons of all ACT nodes required quadratic time and isn't possible for large code base.
+We need hashing mechanism for ACT where similar ACT have same hash codes. For this we
+introduce ACT fingerprinting structure. We produce fingerprint throwing away irrelevant 
+information, generalizing types, normalizing expressions and replacing some construction with
+ wildcards. We work at method level, so as a disadvantage we cannot handle
+refactorings such as a method inlining or method extraction.
 
 First in our hashing function we can ignore variable names. The primitive types
 we preserve as is. In Java there are 8 primitive data types which we should
@@ -26,16 +25,8 @@ preserve Java standard library classes, such as 'java.lang.String' which are the
 same for every project.
 
 Some expressions is normalized, for example chain of assignments, if assignment
-are not related with each other we can safely reorder them. We normalize
-assignment chain by reordering them in alphabetical order. Also we normalize
-constant-variable boolean comparisons. In normalized comparison variable always
-on left side.
-
-Introduced in Java 6 foreach cycle can be replaced with old for cycle. Lambda
-expressions in Java introduced only in Java 8. In Java lambdas semantically
-are equal to callback-classes with single method. Even developer can use
-lambda in every place where callback-method is accepted. So in our search engine
-we do not distinguish lambdas from callback-classes.
+are not related with each other we can safely reorder them. We fingerprint ACT with
+every possible reorder and add them into our fingerprint database.
 
 Some kinds of expression are removed while ACT processing. This is a simple
 log method calls, if statements which checks does logging is enabled or nor,

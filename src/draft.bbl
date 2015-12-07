@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{Baxter&al1998}
+Ira~D. Baxter, Andrew Yahin, Leonardo Moura, Marcelo Sant'Anna, and Lorraine
+  Bier.
+\newblock Clone detection using abstract syntax trees.
+\newblock In {\em Proc. Int'l Conf. Software Maintenance (ICSM)}, pages
+  368--377. IEEE Computer Society Press, 1998.
+
+\bibitem{lindhold12}
+Tim Lindholm, Frank Yellin, Gilad Bracha, and Alex Buckley.
+\newblock {\em The Java™ Virtual Machine Specification}.
+\newblock Oracle America, Inc., java se 7 edition edition, February 2012.
+
+\bibitem{gosling05}
+James Gosling, Bill Joy, Guy Steele, and Gilad Bracha.
+\newblock {\em Java(TM) Language Specification, The (3rd Edition) (Java
+  (Addison-Wesley))}.
+\newblock Addison-Wesley Professional, 2005.
+
+\end{thebibliography}
