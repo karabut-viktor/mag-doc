@@ -1,57 +1,31 @@
-\section{AST search engine}
+\section{ACT search engine}
 
-\subsection{Hashing of code fragments}
+One to one comparisons of all parsed ACT nodes required quadratic time and isn't possible for large code base.
+In order to make simillar code search fast we introduce the ACT search engine.
+Engine stores methods ACTs in database with reference to original files and artifacts.
+For every ACT are stores one or more fingerprints.
+Fingerpring is a digest from ACT composed in such way that similar ACTs can have equals fingerprints.
 
-One to one comparisons of all ACT nodes required quadratic time and isn't possible for large code base.
-We need hashing mechanism for ACT where similar ACT have same hash codes. For this we
-introduce ACT fingerprinting structure. We produce fingerprint throwing away irrelevant 
-information, generalizing types, normalizing expressions and replacing some construction with
- wildcards. We work at method level, so as a disadvantage we cannot handle
-refactorings such as a method inlining or method extraction.
+Search routine for some specific Java method consist following steps:
+\begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
+  \item Parse method to Java AST.
+  \item Transform AST to our ACT.
+  \item Compute fingerprints from ACT.
+  \item Search for all mathching ACTs.
+  \item Compute all similarities with matched ACTs.
+  \item If some similaritiy is greater than our threshold value, then we found similar code fragment.
+\end{enumerate}
 
-First in our hashing function we can ignore variable names. The primitive types
-we preserve as is. In Java there are 8 primitive data types which we should
-preserve in our hashing mechanism: boolean type, Unicode character type, 8-,
-16-, 32-, 64-bit signed integers, IEEE 754 double- and single-precision floating numbers. As an option
-we can generalize all integer and floating types which are semantically similar.
+Before computing ACT we perform few preprocessing step.
+We normalize ACT structure by merging and flatting block statements.
+Some statements are removed at this steps, for example logging statements.
+To detect logging we just have base of known logging frameworks such as SL4J, java.logging, commons-logging etc.
 
-Class type handling is different. To properly handle the class types we need to
-have information about full project class hierarchy. It means that we should parse not
-only whole project but all project dependencies. Moreover similar classes in
-different project can have different names, so considering class types would
-significantly limit variety of similar code. By considered above reason we throw
-away object information in our search engine. But there is one exclusion: we
-preserve Java standard library classes, such as 'java.lang.String' which are the
-same for every project.
+Fingerprint does not contain information about variable names.
+To properly handle the class types we need to have information about full project class hierarchy.
+It means that we should parse not only whole project but all project dependencies.
+Moreover similar classes in different project can have different names, so considering class types would significantly limit variety of similar code. For this reason we throw away most of type information in our search engine.
+There is an exception for basic JDK classes, such as java.lang.String, java.util.Date, primitive types etc.
 
-Some expressions is normalized, for example chain of assignments, if assignment
-are not related with each other we can safely reorder them. We fingerprint ACT with
-every possible reorder and add them into our fingerprint database.
-
-Some kinds of expression are removed while ACT processing. This is a simple
-log method calls, if statements which checks does logging is enabled or nor,
-assertions and class casts. To detect logging we just have base of known logging
-frameworks. Most of Java projects use SL4J, java.logging, commons-logging etc.
-
-\subsection{Database and Maven}
-
-Apache Maven is a build automation tool used primarily for Java projects. Maven
-addresses two aspects of building software: First, it describes how software is built, 
-and second, it describes its dependencies. Contrary to preceding tools like Apache
-Ant it uses conventions for the build procedure, and only exceptions need to be
-written down. An XML file describes the software project being built, its
-dependencies on other external modules and components, the build order, 
-directories, and required plug-ins. Maven dynamically downloads Java libraries
-and Maven plug-ins from one or more repositories such as the Maven  Central 
-Repository, and stores them in a local cache.
-
-Build artifacts in maven repository is versioned and often provided with source
-code. It allows as to trace evolution of project. In this paper we user
-artifacts from Maven Central Repository. Maven Central Repository is
-the default repository for Apache Maven and it serves only Open Source projects. 
-According Maven Central Repository statistics in November 2014 there were over 800 
-thousands artifacts.
-
-For accessing Maven repository there is well documented Maven Plugin API for
-fetching and managing artifacts.
+In order to allow search of not only
 
