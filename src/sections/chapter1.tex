@@ -16,9 +16,8 @@ and R - in right subtree.
 
 In this work we will use similar approach, but instead of working with language-specific AST we will translate it to
 language-agnostic intermediate code representation: Abstract Code Trees (ACT).
-ACT is laconic imperative language.
-ACT doesn't meant to be executed, althrough this possible.
-Main reason of introducing ACT is a give formal definition of 'code similarity' which allows us to reason about
+ACT is a digest of program syntax structure.
+Main reason of introducing ACT is to a give formal definition of 'code similarity' which allows us to reason about
 effectiveness of our search methods.
 
 Intermediate representation will allow to make language-agnostic search engine, so it would be possible to migrate to
@@ -31,22 +30,65 @@ such as introduced in Java 6 'foreach' cycle for collection traversing \cite{gos
 \subsection{Description of ACT}
 
 ACT (Abstract Code Tree) is a intermediate representation of code.
-ACT was inspired by Nielson's while language \cite{Nielson&Nielson93}.
-Language describes these Extended Backus-Naur Form (EBNF)\cite{ISO1996} rules. 
-
+ACT structure was inspired by Nielson's while language \cite{Nielson&Nielson93}.
+ACT tree structure are describes these Extended Backus-Naur Form (EBNF)\cite{ISO1996} rules. 
 
 \begin{verbatim}
-stmt = block | if | while | expr | try-catch| return | throw
-block = begin, { stmt }, end
-if = "if", expr, "then", block, "else", block
-while = "while", expr, "do", block
-expr = assign | var | call | str_literal | num_literal
-assign = expr ":=" expr
-call = "f(", str_literal, {, expr}, ")"
-try-catch = "try", block, {"catch ", str_literal, block}
-return = "return", expr
-throw = "throw", expr
+  stmt = block | if | while | expr | try-catch| return | throw
+  block = begin, { stmt }, end
+  if = "if", expr, "then", block, "else", block
+  while = "while", expr, "do", block
+  try-catch = "try", block, {"catch ", str_literal, block}
+  expr = assign | var | call | str_literal | num_literal
+  assign = expr ":=" expr
+  call = "f(", str_literal, {, expr}, ")"
+  return = "return", expr
+  throw = "throw", expr
 \end{verbatim}
+
+This is briefly description of all ACT nodes.
+\begin{description}
+  \item[Statement 'stmt'] \hfill \\
+  Root class for all ACT nodes. Every node is statements.
+  \item[Code block: 'block'] \hfill \\
+  Block of code. 
+  In while-language syntax Nielson uses concatenation(';') operator to chain multiply statements\cite{Nielson&Nielson93}.
+  However introducing of concatenation operator doesn't fit well into our clone detection framework.
+  Our engine should handle clones which have few statements inserted or removed from the middle of code.
+  Using concatentation operators results to deep trees, where inserting to the end of block result to change of whole tree.
+  Instead of this we use blocks which contains ordered lists of statements.
+  This flattens tree structure and allows to apply different edit distance algorithms.
+  \item[If statement 'if'] \hfill \\
+  Conditional statement node.
+  Digest of the Java if-statement.
+  Additionally Java multiple choise conditional statements 'switch-case' are also translated to this node.
+  Our conditional statement always contains 'else' branch even if it is an empty code block.
+  \item[While cycle 'while'] \hfill \\
+  Simple cycle with precondition.
+  Digest of Java while-cycle.
+  All kinds of Java iteration statements are translated to this node.
+  Always contains body even if it is an empty code block.
+  \item[Try-catch block 'try-catch'] \hfill \\
+  Digest of Java try-catch block.
+  \item[Expression 'expr'] \hfill \\
+  Root class for all ACT expressions.
+  Expression is a statement which have value.
+  \item[Assignment statement 'assign'] \hfill \\
+  Digest of Java '=' expression.
+  According ACT syntax can contain any expression on both sides.
+  We do not divide expression by right and left value in our engine.
+  \item[Method call] \hfill \\
+  Method call.
+  Has wide variety of uses in our
+  Digest of java dot operator.
+  All Java static method calls, virtual method call and even constructor calls are translated to this node.
+  Moreover this node is a digest of all Java binary operators, such as comparison '==', multiplication '*', addition '+' etc.
+  \item[Return] \hfill \\
+  Digest of Java return statement
+  \item[Throw] \hfill \\
+  Digest of Java throw statement.
+  Used for throwing exceptions.
+\end{description}
 
 \subsection{Translation ACT}
 
@@ -66,9 +108,11 @@ ACT if-statement is same as in Java except it always have else branch.
 Java switch-case statement are translated to series of consecutive if-statements.
 Translator expects that every case block are followed by 'break' statement.
 If break statement is absent translator would add it artificially, it isn't semantically correct behaviour but
-good-enough for our similar code detection.
+good-enough for our similar code detection. \\
 
+\renewcommand{\arraystretch}{0.01}
 \begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Java switch statement} & \textbf{ACT} \\
 \begin{verbatim}
 switch(a): {
   case 1:
@@ -93,11 +137,29 @@ else
 \end{verbatim}
 \end{tabular}
 
-Java language has 4 different cycle statements. Whyle-cycle translates as is. Java do-cycle converted to
+
+Java language has 4 different iteration statements\cite{gosling05}. Whyle-cycle translates as is. Java do-cycle converted to
 while by repeating the cycle body. For-cycle initialization moves outside of cycle and counter expression are
-appended to the end of body.
+appended to the end of body.\\
 
 \begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Java while cycle} & \textbf{ACT} \\
+\begin{verbatim}
+while(code()) {
+  doA();
+}
+\end{verbatim} 
+  & 
+\begin{verbatim}
+while f('cond') do begin
+  f('doA')
+end
+\end{verbatim}
+\\~\\
+\end{tabular}
+
+\begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Java do-while cycle} & \textbf{ACT} \\
 \begin{verbatim}
 do {
   doA();
@@ -110,9 +172,11 @@ while f('cond') do begin
   f('doA')
 end
 \end{verbatim}
+\\~\\
 \end{tabular}
 
 \begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Java for cycle} & \textbf{ACT} \\
 \begin{verbatim}
 for (init(); cond(); counter()){
   doA();
@@ -128,22 +192,40 @@ end
 \end{verbatim}
 \end{tabular}
 
-Added in Java 6 enhanced for-cycle is a syntax sugar for Java SE collection framework API \cite{gosling05}.
+Added in Java 6 enhanced for-cycle is a syntax sugar for Java SE collection framework API \cite{oracle2015oracle}.
 We replace them with equivalent for-cycle and then translate it to ACT while.
-For example these two Java code fragment are equivalent in sense of generated bytecode:
+For example these two Java code fragment are equivalent in sense of generated bytecode:\\
 
 \begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Java source code} & ~ \\
 \begin{verbatim}
 for (X x : xs){
   do(x);
 }
 \end{verbatim} 
   & 
+~
+\end{tabular}
+
+\begin{tabular}{ p{6cm} p{6cm} }
+\textbf{Equivalent Java code} & \textbf{ACT} \\
 \begin{verbatim}
-for (Iterator it = xs.iterator(); it.hasNext();) {
+for (
+    Iterator it = xs.iterator();
+    it.hasNext();
+    ) {
   X x = (X) it.next();
   do(x);    
 }
+\end{verbatim} 
+  & 
+\begin{verbatim}
+it = f('java.util.Collection#iterator', xs)
+while f('java.util.Iterator#hasNext', it) do 
+begin
+  x = f('java.util.Iterator#next', it)
+  f('do', x)
+end
 \end{verbatim}
 \end{tabular}
 
@@ -152,39 +234,49 @@ blocks. 'Finally' blocks isn't  present on ACT, but its content added just after
 
 \subsection{Definition of similarity}
 
-We define similarity between two ACT nodes is a float in interval from 0 to 1.
-Similarity should be equal 1 if ACT is identical, and be 0 if we compare nodes of different types.
-Now we can define similarity recursively for every node.
-
-Two numerical literals are similar if and only if they are equal:
+How close are two code fragments?
+Are they clones or not?
+To answer this question we define similarity between two ACT nodes is a float number in an interval from 0 to 1.
+Similarity should be equal 1 if code is completely identical, and 0 if have nothing in common.
+Now we can define similarity between every possible ACT nodes.
 
 \begin{align*}
-Sim(x_a, x_b) &= 
+  Sim \colon & ACT \times ACT \mapsto \lbrack 0 \ldots 1 \rbrack
+\end{align*}
+
+First and important rule: similarity of two nodes with different types are always 0.
+\begin{align*}
+  Sim(x, y) = 0 \text{ if $type(x) \neq type(y)$ }
+\end{align*}
+
+Now we should define our similarity function for every node type. Let's start fro numerical literals. Numerical literals are similar if and only if they are values are equal.
+
+\begin{align*}
+Sim(num(x), num(y)) &= 
 	\begin{cases} 
-		\hfill 1    \hfill & \text{ if $x_a = x_b$} \\
-		\hfill 0	\hfill & \text{ otherwise} \\
+		\hfill 1  \hfill & \text{ if $x = y$} \\
+		\hfill 0	\hfill & \text{ otherwise } \\
 	\end{cases}
 \end{align*}
 
-For string literals good candidate is Levenshtein edit distance\cite{surveys/navarro01}. The 
-Levenshtein distance between two words is the minimum number of single-character insertions, deletions or substitutions
-required to change one string into the other.
-To get value in needed interval, we will normalize output of Levenshtein function by dividing to string length.
+For string literals good candidate is the Levenshtein edit distance\cite{surveys/navarro01}.
+The Levenshtein distance between two words shows the minimum number of single-character insertions, deletions or substitutions required to change one string into the another.
+To get value in needed interval, we normalize output of Levenshtein function by dividing to string length.
 
 \begin{align*}
 Sim(s_a, s_b) &= 1 - \frac{lev(s_a,s_b)}{max(length(s_a), length(s_b))}
 \end{align*}
 
-Using same idea we can define editional distance for two code blocks: edit distance of two code blocks if the minimum
+Using same idea we can define editional distance for two code blocks: edit distance of two code blocks is the minimum
 number of single statement insertions, deletions or substitutions required to change one code block into other.
-Insertions and deletions are count as 1 operation, substitutions cound as $1 - sim(stm_a, stm_b)$ operations. Such
-approach will help us to handle similar code fragment where only few lines of code were removed or added.
+Insertions and deletions are count as 1 operation, substitutions cound as $1 - sim(stm_a, stm_b)$ operations.
+Such approach will help us to handle similar code fragment where only few lines of code were removed or added.
 
 \begin{align*}
 	Sim(block_a, block_b) &= 1 - \frac{lev(block_a,block_b)}{max(length(block_a), length(block_b))}
 \end{align*}
 
-Two method call similarities a computed by same rules as block similarity, but instead of block statements we compute
+Two method call similarities a computed by same rules as a block similarity, but instead of block statements we compute
 distance of argument expressions.
 
 \begin{align*}
@@ -194,34 +286,34 @@ distance of argument expressions.
 We define similarity of 'if' node as a linear composition of similarities of child nodes. 
 
 \begin{align*}
-	Sim(if(e_a, block_{a,then}, block_{a,else}), if(e_b, block_{b,then}, block_{b,else}))) &= \\
-	&C_{if,0} + \\
-	&C_{if,1} Sim(e_a, e_b) + \\
-	&C_{if,2} Sim(block_{a,then}, block_{b,then}) + \\
-	&C_{if,3} Sim(block_{a,else}, block_{b,else})
+	Sim(&if(expr_a, block_{a,then}, block_{a,else}), if(expr_b, block_{b,then}, block_{b,else})))\\
+	=& C_{if,0} \\
+	+& C_{if,1} Sim(expr_a, expr_b) \\
+	+& C_{if,2} Sim(block_{a,then}, block_{b,then}) \\
+	+& C_{if,3} Sim(block_{a,else}, block_{b,else})
 \end{align*}
 
 Constant $C_{if,0}, C_{if,1}, C_{if,2}, C_{if,3}$ can be selected empirically such as $C_{if,0}, C_{if,1}, C_{if,2},
 C_{if,3} >= 0$ and $C_{if,0} + C_{if,1} + C_{if,2} + C_{if,3} = 1$ to ensure that similarity always in interval 0..1.
-Current version of ACT engine uses following constants $C_{if,0} = 0.2$, $C_{if,1} = 0.5$, $C_{if,3} = 0.3$.
-For example if two 'if' statements have identical code blocks, but completely different conditional expressions their
-similarity can be computad as
+Current version of ACT engine uses following constants $C_{if,1} = 0.1$, $C_{if,1} = 0.2$, $C_{if,1} = 0.4$, $C_{if,3} = 0.3$.
+For example if two 'if' statements have identical code blocks, but completely different conditional expressions such as $Sim(e_a,e_b) = 0$ their
+similarity can be computed as following:
 
 \begin{align*}
-	Sim(if(e, b_{then}, b_{else}), if(e, b_{then}, b_{else}))) &= \\
-	&C_{if,0} + \\
-	&C_{if,1} Sim(e_a, e_b) + \\
-	&C_{if,2} Sim(b_{then}, b_{then}) + \\
-	&C_{if,3} Sim(b_{else}, b_{else})
+	Sim(&if(e, b_{then}, b_{else}), if(e, b_{then}, b_{else}))) = \\
+	=& C_{if,0} + C_{if,1} Sim(e_a, e_b) + C_{if,2} Sim(b_{then}, b_{then}) + C_{if,3} Sim(b_{else}, b_{else}) \\
+	=& 0.1 + 0.2 Sim(e_a, e_b) +	0.4 Sim(b_{then}, b_{then}) +	0.3 Sim(b_{else}, b_{else}) \\
+	=& 0.1 + 0 + 0.4 + 0.3 \\
+	=& 0.8
 \end{align*}
 
 Same approach we use to define similarity of 'while' nodes:
 
 \begin{align*}
-	Sim(while(expr_a, block_a), while(expr_b, block_b)) &= \\
-	&C_{while,0} + \\
-	&C_{while,1} Sim(expr_a, expr_b) + \\
-	&C_{while,2} Sim(block_a, block_b)
+	Sim(&while(expr_a, block_a), while(expr_b, block_b)) = \\
+	=&C_{while,0} \\
+	+&C_{while,1} Sim(expr_a, expr_b) \\
+	+&C_{while,2} Sim(block_a, block_b)
 \end{align*}
 
 

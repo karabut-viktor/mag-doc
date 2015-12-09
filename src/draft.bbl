@@ -39,6 +39,9 @@ H.~R. Nielson and F.~Nielson.
   \url{http://standards.iso.org/ittf/PubliclyAvailableStandards/s026153_ISO_IEC_14977_1996(E).zip}
   -- last visited $15^{th}$ January 2009.
 
+\bibitem{oracle2015oracle}
+Oracle java documentation: Collections framework overview, 2015.
+
 \bibitem{surveys/navarro01}
 Gonzalo Navarro.
 \newblock A guided tour to approximate string matching.
