@@ -235,56 +235,97 @@ blocks. 'Finally' blocks isn't  present on ACT, but its content added just after
 \subsection{Definition of similarity}
 
 How close are two code fragments?
-Are they clones or not?
+Can they be be considered as clones?
 To answer this question we define similarity between two ACT nodes is a float number in an interval from 0 to 1.
 Similarity should be equal 1 if code is completely identical, and 0 if have nothing in common.
 Now we can define similarity between every possible ACT nodes.
 
+\begin{mydef}[Similarity function]
 \begin{align*}
   Sim \colon & ACT \times ACT \mapsto \lbrack 0 \ldots 1 \rbrack
 \end{align*}
+\end{mydef}
 
 First and important rule: similarity of two nodes with different types are always 0.
+
+\begin{mydef}[Similarity for different node types]
 \begin{align*}
   Sim(x, y) = 0 \text{ if $type(x) \neq type(y)$ }
 \end{align*}
+\end{mydef}
 
-Now we should define our similarity function for every node type. Let's start fro numerical literals. Numerical literals are similar if and only if they are values are equal.
+Now we should define our similarity function for every node type starting from numerical literals. We define numerical literals are similar if and only if they are values are equal.
 
+\begin{mydef}[Similarity for different node types]
 \begin{align*}
 Sim(num(x), num(y)) &= 
 	\begin{cases} 
-		\hfill 1  \hfill & \text{ if $x = y$} \\
+		\hfill 1  \hfill & \text{ if $x = y$ } \\
 		\hfill 0	\hfill & \text{ otherwise } \\
 	\end{cases}
 \end{align*}
+\end{mydef}
 
 For string literals good candidate is the Levenshtein edit distance\cite{surveys/navarro01}.
 The Levenshtein distance between two words shows the minimum number of single-character insertions, deletions or substitutions required to change one string into the another.
-To get value in needed interval, we normalize output of Levenshtein function by dividing to string length.
+Cost of every insertion, addition or substitution is 1.
+To get value in needed interval $\lbrack 0 \ldots 1 \rbrack$, we normalize output of Levenshtein function by dividing by maximum string length.
 
+\begin{mydef}[Similarity for string literals]
 \begin{align*}
 Sim(s_a, s_b) &= 1 - \frac{lev(s_a,s_b)}{max(length(s_a), length(s_b))}
 \end{align*}
+\end{mydef}
 
 Using same idea we can define editional distance for two code blocks: edit distance of two code blocks is the minimum
 number of single statement insertions, deletions or substitutions required to change one code block into other.
 Insertions and deletions are count as 1 operation, substitutions cound as $1 - sim(stm_a, stm_b)$ operations.
 Such approach will help us to handle similar code fragment where only few lines of code were removed or added.
 
+\begin{mydef}[Similarity for block nodes]
 \begin{align*}
 	Sim(block_a, block_b) &= 1 - \frac{lev(block_a,block_b)}{max(length(block_a), length(block_b))}
 \end{align*}
 
+\end{mydef}
+
+
 Two method call similarities a computed by same rules as a block similarity, but instead of block statements we compute
 distance of argument expressions.
 
+\begin{mydef}[Similarity for method calls]
 \begin{align*}
 	Sim(f_a, f_b) &= 1 - \frac{lev(f_a,f_b)}{max(length(f_a), length(f_b))}
 \end{align*}
+\end{mydef}
 
-We define similarity of 'if' node as a linear composition of similarities of child nodes. 
 
+\begin{exmp}[Block similarity] For example we consider following block ACTs. They differ only by middle function call statement.\\
+\begin{tabular}{ p{6cm} p{6cm} }
+\textbf{ACT\textsubscript{1}} & \textbf{ACT\textsubscript{2}} \\
+\begin{verbatim}
+begin
+  f('doA')
+  f('doB')
+  f('doC')
+end
+\end{verbatim} 
+  &
+\begin{verbatim}
+begin
+  f('doA')
+  f('doD')
+  f('doC')
+end
+\end{verbatim}
+\end{tabular}
+
+\noindent
+Easiest way to convert ACT\textsubscript{1} to ACT\textsubscript{2} is to replace middle statement f('doB') by f('doD'). According block similarity definition this replacements costs  $1 - Sim(f('doB'), f('doD')) = 1 - \frac{lev('doB', 'doD')}{max(length('doB'), length('doD'))} = 1 - (1 - \frac{1}{3}) = \frac{1}{3}$. Then similarity between blocks is $Sim(ACT_1, ACT_2) = 1 - \frac{lev(ACT_1, ACT_2)}{length(ACT_1), length(ACT_2)} = 1 - \frac{1/3}{3} = \frac{8}{9}$.
+
+\end{exmp}
+
+\begin{mydef}[Similarity for conditional statements] We define similarity of 'if' node as a linear composition of similarities of child nodes. 
 \begin{align*}
 	Sim(&if(expr_a, block_{a,then}, block_{a,else}), if(expr_b, block_{b,then}, block_{b,else})))\\
 	=& C_{if,0} \\
@@ -296,7 +337,9 @@ We define similarity of 'if' node as a linear composition of similarities of chi
 Constant $C_{if,0}, C_{if,1}, C_{if,2}, C_{if,3}$ can be selected empirically such as $C_{if,0}, C_{if,1}, C_{if,2},
 C_{if,3} >= 0$ and $C_{if,0} + C_{if,1} + C_{if,2} + C_{if,3} = 1$ to ensure that similarity always in interval 0..1.
 Current version of ACT engine uses following constants $C_{if,1} = 0.1$, $C_{if,1} = 0.2$, $C_{if,1} = 0.4$, $C_{if,3} = 0.3$.
-For example if two 'if' statements have identical code blocks, but completely different conditional expressions such as $Sim(e_a,e_b) = 0$ their
+\end{mydef}
+
+\begin{exmp}[Conditional statement similarity] For example if two 'if' statements have identical code blocks, but completely different conditional expressions such as $Sim(e_a,e_b) = 0$ their
 similarity can be computed as following:
 
 \begin{align*}
@@ -307,7 +350,9 @@ similarity can be computed as following:
 	=& 0.8
 \end{align*}
 
-Same approach we use to define similarity of 'while' nodes:
+\end{exmp}
+
+\begin{mydef}[Similarity for while statement] Same approach we use to define similarity of 'while' nodes:
 
 \begin{align*}
 	Sim(&while(expr_a, block_a), while(expr_b, block_b)) = \\
@@ -315,6 +360,8 @@ Same approach we use to define similarity of 'while' nodes:
 	+&C_{while,1} Sim(expr_a, expr_b) \\
 	+&C_{while,2} Sim(block_a, block_b)
 \end{align*}
+
+\end{mydef}
 
 
 
