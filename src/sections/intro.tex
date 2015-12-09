@@ -2,33 +2,29 @@
 \addcontentsline{toc}{section}{Introduction}
 
 Supreme goal of my work is an implementation of IDE plugin which check writed code and gives suggestion about code
-organization. For example some similar routines from different modules of large project can be refactored 
-into one utility method. Another usage scenario is a code fragments which can be replaced with utilities available from
-some existing library. Often code reuse is limited by legal
-issues, such as patents, copyrights. However there is a wide variety of an open source
-projects, from where code can be used as an inspiration or even be directly
+organization. 
+For example some similar routines from different modules of large project can be refactored into one utility method.
+Another usage scenario is a code fragments which can be replaced with utilities available from some existing library.
+Often code reuse is limited by legal issues, such as patents, copyrights \cite{aversano07}. 
+However there is a wide variety of an open source projects, from where code can be used as an inspiration or even be directly
 used.
 
-Our goal is  to find not intentionally copied code, but code fragment which is similar because they
-implements similar algorithms or similar code routines. In many previous works (cite?) code clones considered
-as textual copies of code with changed formatting, added comments or renamed variables. 
+Our goal is  to find not intentionally copied code, but code fragment which is similar because they implements similar algorithms or similar code routines.
+In many previous works \cite{Baxter&al1998}\cite{Kamiya:tse:00} code clones considered as textual copies of code with changed
+formatting, added comments or renamed variables.
 In this article we emphasise on semantically similar code, which cannot even have similar statements, but which does
-semantically same work. For example for every while-cycle we can write semantically equivalent while-cycle or replace
-if-else with switch-case statement.
+semantically same work.
+For example for every while-cycle we can write semantically equivalent while-cycle or replace if-else with switch-case statement.
 
-In the first chapter we consider questions about code similarity. In order to detect similar code
-fragments we will parse Java language code into AST.
+In first chapter we consider questions about code similarity.
+In order to detect similar code fragments we will parse Java language code into AST.
 After that we introduce intermediate representation of parsed code: Abstract Code Trees (ACT).
 During translation to ACT we get rid of reduntant for our purpose information.
 
-In second chapter we will consider fast search engine for code fragments. ACT
-each-to-each comparison complexity is $O(n^2 \cdot m^2)$ where $n$ is number of
-trees and $m$ is size of each treee. For large code fragment database speed of
-quadratic algorithms is unacceptable. To solve this issue we use a
-hashing mechanism. For this we use fingerprinting approach.
-Fingerprint is a generalized version of ACT, where removed some information. Fingerprinting allows to find in
-constant time get some relatively small set of matching ACT from where we can find needed code fragments using an
-quadratic algorithms.
-
-Finally in third chapter we describe experiments with finding code fragments in
-open source projects fetched from Maven Central database.
+In second chapter we will consider fast search engine for code fragments.
+ACT each-to-each comparison complexity is $O(n^2 \cdot m^2)$ where $n$ is number of trees and $m$ is size of each treee.
+For large code base performance of quadratic algorithms is not feasible.
+To solve this issue we use a fingerprinting approach.
+Fingerprint is a generalized version of ACT, where removed some information.
+Fingerprinting allows to find in constant time get some relatively small set of matching ACT from where we can find
+needed code fragments using a slow quadratic algorithms.

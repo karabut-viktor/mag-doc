@@ -4,28 +4,32 @@ One to one comparisons of all parsed ACT nodes required quadratic time and isn't
 In order to make simillar code search fast we introduce the ACT search engine.
 Engine stores methods ACTs in database with reference to original files and artifacts.
 For every ACT are stores one or more fingerprints.
-Fingerpring is a digest from ACT composed in such way that similar ACTs can have equals fingerprints.
+Fingerprint is a digest from ACT composed in such way that similar ACTs can have equals fingerprints.
 
 Search routine for some specific Java method consist following steps:
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
   \item Parse method to Java AST.
   \item Transform AST to our ACT.
   \item Compute fingerprints from ACT.
-  \item Search for all mathching ACTs.
+  \item Search for all matching ACTs.
   \item Compute all similarities with matched ACTs.
-  \item If some similaritiy is greater than our threshold value, then we found similar code fragment.
+  \item If some similarity is greater than our threshold value, then we found similar code fragment.
 \end{enumerate}
 
 Before computing ACT we perform few preprocessing step.
 We normalize ACT structure by merging and flatting block statements.
-Some statements are removed at this steps, for example logging statements.
+Some statements are removed at this step, for example logging statements.
 To detect logging we just have base of known logging frameworks such as SL4J, java.logging, commons-logging etc.
 
 Fingerprint does not contain information about variable names.
 To properly handle the class types we need to have information about full project class hierarchy.
 It means that we should parse not only whole project but all project dependencies.
-Moreover similar classes in different project can have different names, so considering class types would significantly limit variety of similar code. For this reason we throw away most of type information in our search engine.
+Moreover similar classes in different project can have different names, so considering class types would significantly limit variety of similar code. 
+For this reason we throw away most of type information in our search engine.
 There is an exception for basic JDK classes, such as java.lang.String, java.util.Date, primitive types etc.
 
-In order to allow search of not only
 
+In order to extend the search scope we associate with ACT not only whole tree but also fingerprint of its biggest
+subtrees.
+This technique allows to find similar trees where few statements were added or removed.
+In this case, you can search for the code not only with the exact structure, but also blocks where one operator has been added or removed.

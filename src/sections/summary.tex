@@ -1,3 +1,10 @@
 \section{Conclusion and Future Work}
 
-How does class file look like? Check out JVMS \cite{lindhold12}.
+During this work we developed framework for finding similar code in Java project.
+We  managed to give the formal definition of a similar code fragments using intermediate code representation ACT.
+Developed during this work translator allows to convert arbitrary Java 1.7 code into ACT.
+As ACT is a language agnostic representation this is possible to implement support for another languages.
+
+In future work I plan is to parse multiple open source project from Maven central.
+Final goal is to implement extension for some IDE(Integrated Development Environment) which would find similar code
+fragments from maven in reasonable time.

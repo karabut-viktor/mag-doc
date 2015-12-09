@@ -1,8 +1,7 @@
 \section{Similar code detection}
 
-Simplest possible way to find code duplication would be line-by-line comparison of
-source lines. However code can differ by an indentation, comments, variable
-names. 
+Simplest possible way to find code duplication would be line-by-line comparison of source lines.
+However code can differ by an indentation, comments, variable names. 
 
 Other approach is parse language construct into language-specific Abstract 
 Syntax Trees (AST) and then compare each node by node using recursive similarity
@@ -15,27 +14,26 @@ Similarity =  \frac{ 2 \cdot S}{2 \cdot S + L + R}
 where S is a number of shared nodes. L is a number of different nodes in left subtree,
 and R - in right subtree.
 
-In this work we will use similar approach, but instead of working with
-language-specific AST we will translate it to language-agnostic intermediate
-code representation: Abstract Code Trees (ACT).  ACT is laconic imperatice 
-language. ACT doesn't meant to be executed, althroug this possible. Main reason
-of introducing ACT is a give formal definition of 'code similarity' which allows
-us to reason about effectiveness of our search methods. 
+In this work we will use similar approach, but instead of working with language-specific AST we will translate it to
+language-agnostic intermediate code representation: Abstract Code Trees (ACT).
+ACT is laconic imperative language.
+ACT doesn't meant to be executed, althrough this possible.
+Main reason of introducing ACT is a give formal definition of 'code similarity' which allows us to reason about
+effectiveness of our search methods.
 
 Intermediate representation will allow to make language-agnostic search engine, so it would be possible to migrate to
-another language. Laconic by nature ACT will help to make search engine simple
-and effective. 
+another language.
+Laconic by nature ACT will help to keep the search engine simple and effective. 
 
 As a bonus at Java translation step we get rid of various Java 'sugar' constructs,
-such as introduced in Java 6 'foreach' cycle for collection traversing. All possible 
-
-Not all Java constructs are translated to ACT. Some drop
+such as introduced in Java 6 'foreach' cycle for collection traversing \cite{gosling05}.
 
 \subsection{Description of ACT}
 
-ACT (Abstract Code Tree) is a intermediate representation of code. ACT was inspired
-by Nielson's while language (cite?). ACT doesn't meant to be executed, however
-execution is also possible. Language describes these EBNF rules:
+ACT (Abstract Code Tree) is a intermediate representation of code.
+ACT was inspired by Nielson's while language \cite{Nielson&Nielson93}.
+Language describes these Extended Backus-Naur Form (EBNF)\cite{ISO1996} rules. 
+
 
 \begin{verbatim}
 stmt = block | if | while | expr | try-catch| return | throw
@@ -52,15 +50,21 @@ throw = "throw", expr
 
 \subsection{Translation ACT}
 
-ACT have much less constructs than Java. In some cases we express different Java language statements with same ACT
-constructs, or, in rare cases, we just drop them. Our goal is to get ACT representation for our
-similar-code search engine, so we intentionally loose some Java semantics, like 'goto' statements.
+ACT have much less constructs than Java. 
+In some cases we express different Java language statements with same ACT constructs or, in rare cases, we just drop
+them.
+Our goal is to get ACT representation for our similar-code search engine, so we intentionally loose some Java
+statements, like labels and 'goto' operators.
+It means that two code fragments which differ only by one label will be considered identical.
+This precision is enough for our practical purposes, because labels aren't widely used in modern Java software.
 
-ACT doesn't have notion of unary or binary operators, so all basic arithmetic, logic and comparison operators 
-are translated to special method call, for example Java expression '3*(2+1)' will be translated to 'f(*,3,f(+,2,1)'.
+ACT doesn't have notion of unary or binary operators. 
+So all basic arithmetic, logic and comparison operators are translated to special method call, for example Java
+expression '3*(2+1)' will be translated to 'f(*,3,f(+,2,1)'.
 
-ACT if-statement is same as in Java except it always have else branch. Java switch-case statement are translated to
-series of consecutive if-statements. Translator expects that every case block are followed by 'break' statement.
+ACT if-statement is same as in Java except it always have else branch.
+Java switch-case statement are translated to series of consecutive if-statements.
+Translator expects that every case block are followed by 'break' statement.
 If break statement is absent translator would add it artificially, it isn't semantically correct behaviour but
 good-enough for our similar code detection.
 
@@ -75,7 +79,7 @@ switch(a): {
   	doC(); break;
 }
 \end{verbatim} 
-  & 
+  &
 \begin{verbatim}
 if (f('eq', a, 1) then 
   begin f('doA') end
@@ -124,9 +128,9 @@ end
 \end{verbatim}
 \end{tabular}
 
-Added in Java 6 enhanced for-cycle is a syntax sugar for Java SE collection framework API. We replace them
-with equivalent for-cycle and then translate it to ACT while. For example these two Java code fragment are equivalent in
-sense of generated bytecode:
+Added in Java 6 enhanced for-cycle is a syntax sugar for Java SE collection framework API \cite{gosling05}.
+We replace them with equivalent for-cycle and then translate it to ACT while.
+For example these two Java code fragment are equivalent in sense of generated bytecode:
 
 \begin{tabular}{ p{6cm} p{6cm} }
 \begin{verbatim}
@@ -149,8 +153,7 @@ blocks. 'Finally' blocks isn't  present on ACT, but its content added just after
 \subsection{Definition of similarity}
 
 We define similarity between two ACT nodes is a float in interval from 0 to 1.
-Similarity should be equal 1 if ACT is identical, and be 0 if we compare nodes
-of different types.
+Similarity should be equal 1 if ACT is identical, and be 0 if we compare nodes of different types.
 Now we can define similarity recursively for every node.
 
 Two numerical literals are similar if and only if they are equal:
@@ -163,37 +166,54 @@ Sim(x_a, x_b) &=
 	\end{cases}
 \end{align*}
 
-For string literals good candidate is Levenshtein edit distance. The 
-Levenshtein distance between two words is the minimum number of single-character insertions, deletions or
-substitutions required to change one string into the other (cite?). To get value in needed interval, we will
-normalize output of Levenshtein function by dividing to string length.
+For string literals good candidate is Levenshtein edit distance\cite{surveys/navarro01}. The 
+Levenshtein distance between two words is the minimum number of single-character insertions, deletions or substitutions
+required to change one string into the other.
+To get value in needed interval, we will normalize output of Levenshtein function by dividing to string length.
 
 \begin{align*}
 Sim(s_a, s_b) &= 1 - \frac{lev(s_a,s_b)}{max(length(s_a), length(s_b))}
 \end{align*}
 
-Using same idea we can define editional distance for two code blocks:
-edit distance of two code blocks if the minimum number of single statement insertions, deletions or
-substitutions required to change one code block into other. Insertions and deletions are count as 1 operation,
-substitutions cound as $1 - sim(stm_a, stm_b)$ operations. Such approach will help to handle similar code fragment where
-only few lines were removed or added.
+Using same idea we can define editional distance for two code blocks: edit distance of two code blocks if the minimum
+number of single statement insertions, deletions or substitutions required to change one code block into other.
+Insertions and deletions are count as 1 operation, substitutions cound as $1 - sim(stm_a, stm_b)$ operations. Such
+approach will help us to handle similar code fragment where only few lines of code were removed or added.
 
 \begin{align*}
 	Sim(block_a, block_b) &= 1 - \frac{lev(block_a,block_b)}{max(length(block_a), length(block_b))}
 \end{align*}
 
+Two method call similarities a computed by same rules as block similarity, but instead of block statements we compute
+distance of argument expressions.
+
+\begin{align*}
+	Sim(f_a, f_b) &= 1 - \frac{lev(f_a,f_b)}{max(length(f_a), length(f_b))}
+\end{align*}
+
 We define similarity of 'if' node as a linear composition of similarities of child nodes. 
 
 \begin{align*}
-	Sim(if(expr_a, block_{a,then}, block_{a,else}), if(expr_b, block_{b,then}, block_{b,else}))) &= \\
+	Sim(if(e_a, block_{a,then}, block_{a,else}), if(e_b, block_{b,then}, block_{b,else}))) &= \\
 	&C_{if,0} + \\
-	&C_{if,1} Sim(expr_a, expr_b) + \\
+	&C_{if,1} Sim(e_a, e_b) + \\
 	&C_{if,2} Sim(block_{a,then}, block_{b,then}) + \\
 	&C_{if,3} Sim(block_{a,else}, block_{b,else})
 \end{align*}
 
-Constant $C_{if,0}, C_{if,1}, C_{if,2}, C_{if,3}$ can be selected empirically such as $C_{if,0}, C_{if,1},
-C_{if,2}, C_{if,3} >= 0$ and $C_{if,0} + C_{if,1} + C_{if,2} + C_{if,3} = 1$ to ensure that similarity always in interval 0..1.
+Constant $C_{if,0}, C_{if,1}, C_{if,2}, C_{if,3}$ can be selected empirically such as $C_{if,0}, C_{if,1}, C_{if,2},
+C_{if,3} >= 0$ and $C_{if,0} + C_{if,1} + C_{if,2} + C_{if,3} = 1$ to ensure that similarity always in interval 0..1.
+Current version of ACT engine uses following constants $C_{if,0} = 0.2$, $C_{if,1} = 0.5$, $C_{if,3} = 0.3$.
+For example if two 'if' statements have identical code blocks, but completely different conditional expressions their
+similarity can be computad as
+
+\begin{align*}
+	Sim(if(e, b_{then}, b_{else}), if(e, b_{then}, b_{else}))) &= \\
+	&C_{if,0} + \\
+	&C_{if,1} Sim(e_a, e_b) + \\
+	&C_{if,2} Sim(b_{then}, b_{then}) + \\
+	&C_{if,3} Sim(b_{else}, b_{else})
+\end{align*}
 
 Same approach we use to define similarity of 'while' nodes:
 

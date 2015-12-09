@@ -1,5 +1,11 @@
 \begin{thebibliography}{1}
 
+\bibitem{aversano07}
+M.~Di~Penta L.~Aversano, L.~Cerulo.
+\newblock How clones are maintained: An empirical study,.
+\newblock {\em Proceedings of the 11th European Conference on Software
+  Maintenance and Reengineering. CSMR 2}, pages 81--90, 2007.
+
 \bibitem{Baxter&al1998}
 Ira~D. Baxter, Andrew Yahin, Leonardo Moura, Marcelo Sant'Anna, and Lorraine
   Bier.
@@ -7,15 +13,35 @@ Ira~D. Baxter, Andrew Yahin, Leonardo Moura, Marcelo Sant'Anna, and Lorraine
 \newblock In {\em Proc. Int'l Conf. Software Maintenance (ICSM)}, pages
   368--377. IEEE Computer Society Press, 1998.
 
-\bibitem{lindhold12}
-Tim Lindholm, Frank Yellin, Gilad Bracha, and Alex Buckley.
-\newblock {\em The Java™ Virtual Machine Specification}.
-\newblock Oracle America, Inc., java se 7 edition edition, February 2012.
+\bibitem{Kamiya:tse:00}
+Toshihiro Kamiya, Shinji Kusumoto, and Katsuro Inoue.
+\newblock {CCFinder: A Multi-Linguistic Token-based Code Clone Detection System
+  for Large Scale Source Code}.
+\newblock {\em IEEE Computer Society Trans. Software Engineering},
+  28(7):654--670, 2002.
 
 \bibitem{gosling05}
 James Gosling, Bill Joy, Guy Steele, and Gilad Bracha.
 \newblock {\em Java(TM) Language Specification, The (3rd Edition) (Java
   (Addison-Wesley))}.
 \newblock Addison-Wesley Professional, 2005.
+
+\bibitem{Nielson&Nielson93}
+H.~R. Nielson and F.~Nielson.
+\newblock {\em Semantics with Applications --- A Formal Introduction}.
+\newblock Wiley Professional Computing, 1993.
+
+\bibitem{ISO1996}
+{{ISO/IEC JTC~1}}.
+\newblock {14977 Syntactic metalanguage -- Extended~BNF ($1^{st}$~Edition)},
+  Februar 1996.
+\newblock JTC -- Joint Technical Committee,
+  \url{http://standards.iso.org/ittf/PubliclyAvailableStandards/s026153_ISO_IEC_14977_1996(E).zip}
+  -- last visited $15^{th}$ January 2009.
+
+\bibitem{surveys/navarro01}
+Gonzalo Navarro.
+\newblock A guided tour to approximate string matching.
+\newblock {\em ACM Computing Surveys}, 33(1):31--88, 2001.
 
 \end{thebibliography}
